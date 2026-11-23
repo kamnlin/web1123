@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>可愛療癒時鐘 | Kawaii Clock</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入圓潤可愛的中英文字體 (Zen Maru Gothic & Nunito) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- 自訂 Tailwind 設定，將字體與可愛動畫整合為 Utility Classes -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cute: ['"Zen Maru Gothic"', '"Nunito"', 'sans-serif'],
+                    },
+                    keyframes: {
+                        floatSlow: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        floatUp: {
+                            '0%': { transform: 'translateY(0) scale(0.8)', opacity: '1' },
+                            '100%': { transform: 'translateY(-60px) scale(1.3)', opacity: '0' },
+                        },
+                        wiggle: {
+                            '0%, 100%': { transform: 'rotate(-3deg)' },
+                            '50%': { transform: 'rotate(3deg)' },
+                        },
+                        blink: {
+                            '0%, 92%, 100%': { transform: 'scaleY(1)' },
+                            '96%': { transform: 'scaleY(0.1)' },
+                        }
+                    },
+                    animation: {
+                        'float-slow': 'floatSlow 4s ease-in-out infinite',
+                        'float-up': 'floatUp 1s ease-out forwards',
+                        'wiggle-soft': 'wiggle 2.5s ease-in-out infinite',
+                        'blink-eyes': 'blink 4.5s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body id="page-body" class="font-cute min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-700 bg-pink-50 text-pink-900 overflow-x-hidden select-none relative">
+
+    <!-- 背景飄浮裝飾元素 -->
+    <div class="pointer-events-none fixed inset-0 overflow-hidden z-0 opacity-60">
+        <div class="absolute top-10 left-8 text-4xl sm:text-5xl animate-float-slow">☁️</div>
+        <div class="absolute top-24 right-10 text-3xl sm:text-4xl animate-float-slow" style="animation-delay: 1.2s;">✨</div>
+        <div class="absolute bottom-16 left-12 text-3xl sm:text-4xl animate-float-slow" style="animation-delay: 0.7s;">🌸</div>
+        <div class="absolute bottom-20 right-14 text-4xl sm:text-5xl animate-float-slow" style="animation-delay: 2s;">☁️</div>
+    </div>
+
+    <!-- 主容器卡片 -->
+    <main id="main-card" class="relative z-10 w-full max-w-md bg-white/85 backdrop-blur-md rounded-[2.5rem] shadow-2xl border-4 border-pink-200 p-6 sm:p-8 flex flex-col items-center transition-all duration-500">
+        
+        <!-- 頂部問候語與狀態列 -->
+        <header class="w-full flex items-center justify-between mb-4">
+            <div id="greeting-badge" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-100 text-pink-700 font-bold text-sm sm:text-base shadow-sm transition-colors duration-500">
+                <span id="greeting-icon">☀️</span>
+                <span id="greeting-text">早安呀！</span>
+            </div>
+
+            <!-- 音效與格式控制按鈕 -->
+            <div class="flex items-center gap-2">
+                <button id="sound-toggle" type="button" aria-label="切換滴答音效" title="開啟/關閉輕柔滴答聲"
+                    class="p-2.5 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-700 transition-all active:scale-90 shadow-sm">
+                    <span id="sound-icon" class="text-lg leading-none">🔇</span>
+                </button>
+                <button id="format-toggle" type="button" aria-label="切換12或24小時制" title="切換 12 / 24 小時制"
+                    class="px-3 py-2 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-700 font-extrabold text-xs sm:text-sm transition-all active:scale-90 shadow-sm">
+                    24H
+                </button>
+            </div>
+        </header>
+
+        <!-- 可愛動物造型指針時鐘區 (點擊可摸摸互動) -->
+        <section class="relative my-4 flex items-center justify-center">
+            <!-- 浮動愛心特效容器 -->
+            <div id="hearts-container" class="pointer-events-none absolute inset-0 z-30 flex items-center justify-center"></div>
+
+            <!-- 互動點擊區 -->
+            <button id="clock-pet-area" type="button" aria-label="點我摸摸時鐘"
+                class="group relative focus:outline-none transition-transform duration-300 active:scale-95 cursor-pointer">
+                
+                <!-- 動物耳朵 SVG (會隨主題切換造型與顏色) -->
+                <div id="ears-wrapper" class="absolute -top-7 left-0 right-0 flex justify-between px-6 sm:px-7 pointer-events-none transition-transform duration-300 group-hover:-translate-y-1">
+                    <!-- 左耳 -->
+                    <div id="ear-left" class="w-14 h-14 sm:w-16 sm:h-16 bg-pink-300 rounded-t-full rounded-bl-3xl border-4 border-pink-400 -rotate-12 flex items-center justify-center shadow-inner transition-all duration-500">
+                        <div id="ear-left-inner" class="w-7 h-7 sm:w-8 sm:h-8 bg-pink-100 rounded-t-full rounded-bl-xl transition-colors duration-500"></div>
+                    </div>
+                    <!-- 右耳 -->
+                    <div id="ear-right" class="w-14 h-14 sm:w-16 sm:h-16 bg-pink-300 rounded-t-full rounded-br-3xl border-4 border-pink-400 rotate-12 flex items-center justify-center shadow-inner transition-all duration-500">
+                        <div id="ear-right-inner" class="w-7 h-7 sm:w-8 sm:h-8 bg-pink-100 rounded-t-full rounded-br-xl transition-colors duration-500"></div>
+                    </div>
+                </div>
+
+                <!-- 圓胖錶殼 -->
+                <div id="clock-body" class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-white border-[10px] border-pink-300 shadow-[0_12px_28px_rgba(244,114,182,0.28)] flex items-center justify-center transition-all duration-500">
+                    
+                    <!-- 內圈柔光裝飾 -->
+                    <div id="clock-inner-ring" class="absolute inset-2 rounded-full border-2 border-dashed border-pink-200 pointer-events-none transition-colors duration-500"></div>
+
+                    <!-- 時鐘 SVG：刻度、可愛表情、時針、分針、秒針 -->
+                    <svg id="analog-clock-svg" viewBox="0 0 240 240" class="w-full h-full">
+                        <!-- 12 個圓點刻度與四個主要數字 -->
+                        <g id="clock-markers" class="transition-colors duration-500"></g>
+
+                        <!-- 可愛表情層 (位於錶盤中下方，避免完全被指針遮擋) -->
+                        <g id="kawaii-face" transform="translate(120, 148)">
+                            <!-- 腮紅 -->
+                            <ellipse id="cheek-left" cx="-34" cy="4" rx="10" ry="6" fill="#fda4af" opacity="0.7" />
+                            <ellipse id="cheek-right" cx="34" cy="4" rx="10" ry="6" fill="#fda4af" opacity="0.7" />
+
+                            <!-- 一般眨眼狀態 -->
+                            <g id="eyes-normal" class="origin-center animate-blink-eyes">
+                                <!-- 左眼 -->
+                                <circle cx="-22" cy="-4" r="5.5" fill="#4a373b" />
+                                <circle cx="-23.8" cy="-5.8" r="2" fill="#ffffff" />
+                                <!-- 右眼 -->
+                                <circle cx="22" cy="-4" r="5.5" fill="#4a373b" />
+                                <circle cx="20.2" cy="-5.8" r="2" fill="#ffffff" />
+                            </g>
+
+                            <!-- 被摸摸時的開心彎彎眼 (預設隱藏) -->
+                            <g id="eyes-happy" class="hidden">
+                                <path d="M -29 -2 Q -22 -11 -15 -2" fill="none" stroke="#4a373b" stroke-width="3.5" stroke-linecap="round" />
+                                <path d="M 15 -2 Q 22 -11 29 -2" fill="none" stroke="#4a373b" stroke-width="3.5" stroke-linecap="round" />
+                            </g>
+
+                            <!-- 可愛貓咪/小熊微笑嘴巴 -->
+                            <path id="cute-mouth" d="M -7 3 Q -3.5 8 0 4 Q 3.5 8 7 3" fill="none" stroke="#4a373b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                        </g>
+
+                        <!-- 時針 -->
+                        <g id="hour-hand" transform="rotate(0 120 120)">
+                            <line x1="120" y1="120" x2="120" y2="66" stroke="#f472b6" stroke-width="8" stroke-linecap="round" />
+                        </g>
+
+                        <!-- 分針 -->
+                        <g id="minute-hand" transform="rotate(0 120 120)">
+                            <line x1="120" y1="120" x2="120" y2="44" stroke="#fb7185" stroke-width="6" stroke-linecap="round" />
+                        </g>
+
+                        <!-- 秒針 (末端帶有一顆小圓球) -->
+                        <g id="second-hand" transform="rotate(0 120 120)">
+                            <line x1="120" y1="136" x2="120" y2="34" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
+                            <circle cx="120" cy="38" r="4.5" fill="#f59e0b" />
+                        </g>
+
+                        <!-- 中心小圓鈕 -->
+                        <circle id="clock-center-outer" cx="120" cy="120" r="8" fill="#f472b6" />
+                        <circle cx="120" cy="120" r="3.5" fill="#ffffff" />
+                    </svg>
+                </div>
+
+                <!-- 互動小提示 -->
+                <span id="pet-hint" class="mt-2 inline-block text-xs font-bold text-pink-400 opacity-85 group-hover:opacity-100 transition-opacity">
+                    ✨ 點點錶面可以摸摸我喔 ✨
+                </span>
+            </button>
+        </section>
+
+        <!-- 數位時間與日期顯示卡 -->
+        <section id="digital-panel" class="w-full rounded-3xl bg-pink-50 border-2 border-pink-100 p-4 sm:p-5 text-center shadow-inner transition-colors duration-500">
+            <div class="flex items-baseline justify-center gap-1.5">
+                <span id="digital-time" class="text-4xl sm:text-5xl font-black tracking-wider text-pink-700 transition-colors duration-500">00:00:00</span>
+                <span id="digital-ampm" class="text-sm sm:text-base font-extrabold text-pink-500 hidden">AM</span>
+            </div>
+            <p id="digital-date" class="mt-1.5 text-sm sm:text-base font-bold text-pink-500/90 transition-colors duration-500">
+                2026年 11月 23日 星期一
+            </p>
+        </section>
+
+        <!-- 可愛主題切換列 -->
+        <section class="w-full mt-6">
+            <p id="theme-label" class="text-center text-xs font-bold text-pink-400 mb-3 tracking-wide">
+                切換可愛小夥伴主題
+            </p>
+            <div class="grid grid-cols-4 gap-2 sm:gap-3">
+                <button type="button" data-theme="strawberry"
+                    class="theme-btn flex flex-col items-center justify-center p-2.5 rounded-2xl bg-pink-100 hover:bg-pink-200 border-2 border-pink-400 text-pink-800 transition-all active:scale-95 shadow-sm">
+                    <span class="text-xl sm:text-2xl">🍓</span>
+                    <span class="text-xs font-bold mt-1">草莓貓</span>
+                </button>
+                <button type="button" data-theme="honey"
+                    class="theme-btn flex flex-col items-center justify-center p-2.5 rounded-2xl bg-amber-100 hover:bg-amber-200 border-2 border-transparent text-amber-800 transition-all active:scale-95 shadow-sm">
+                    <span class="text-xl sm:text-2xl">🧸</span>
+                    <span class="text-xs font-bold mt-1">蜂蜜熊</span>
+                </button>
+                <button type="button" data-theme="mint"
+                    class="theme-btn flex flex-col items-center justify-center p-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 border-2 border-transparent text-emerald-800 transition-all active:scale-95 shadow-sm">
+                    <span class="text-xl sm:text-2xl">🐰</span>
+                    <span class="text-xs font-bold mt-1">薄荷兔</span>
+                </button>
+                <button type="button" data-theme="night"
+                    class="theme-btn flex flex-col items-center justify-center p-2.5 rounded-2xl bg-indigo-900 hover:bg-indigo-800 border-2 border-transparent text-indigo-100 transition-all active:scale-95 shadow-sm">
+                    <span class="text-xl sm:text-2xl">🌙</span>
+                    <span class="text-xs font-bold mt-1">星空喵</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- 頁尾小語 -->
+    <footer id="page-footer" class="relative z-10 mt-5 text-xs sm:text-sm font-bold text-pink-400/90 transition-colors duration-500">
+        每一秒都要開開心心喔 💕
+    </footer>
+
+    <script>
+        /**
+         * 可愛互動時鐘核心邏輯
+         * 包含：即時指針/數位更新、多主題切換、摸摸互動特效、Web Audio 輕柔合成音效
+         */
+
+        // ==========================================
+        // 1. 狀態與主題設定
+        // ==========================================
+        let is24Hour = true;
+        let isSoundEnabled = false;
+        let currentThemeKey = 'strawberry';
+        let lastSecond = -1;
+        let audioCtx = null;
+        let happyTimeout = null;
+
+        // 四款粉嫩主題設定表
+        const THEMES = {
+            strawberry: {
+                bodyBg: 'bg-pink-50 text-pink-900',
+                card: 'bg-white/85 border-pink-200',
+                badge: 'bg-pink-100 text-pink-700',
+                ctrlBtn: 'bg-pink-100 hover:bg-pink-200 text-pink-700',
+                earOuter: 'bg-pink-300 border-pink-400 rounded-t-full',
+                earInner: 'bg-pink-100',
+                clockBody: 'bg-white border-pink-300 shadow-[0_12px_28px_rgba(244,114,182,0.28)]',
+                innerRing: 'border-pink-200',
+                digitalPanel: 'bg-pink-50 border-pink-100',
+                digitalTime: 'text-pink-700',
+                digitalSub: 'text-pink-500',
+                hint: 'text-pink-400',
+                footer: 'text-pink-400/90',
+                svg: {
+                    hour: '#f472b6',
+                    minute: '#fb7185',
+                    second: '#f59e0b',
+                    center: '#f472b6',
+                    markerDot: '#fbcfe8',
+                    markerNum: '#ec4899',
+                    cheek: '#fda4af',
+                    faceStroke: '#4a373b'
+                },
+                heartIcons: ['💖', '🍓', '✨', '🌸']
+            },
+            honey: {
+                bodyBg: 'bg-amber-50 text-amber-900',
+                card: 'bg-white/90 border-amber-200',
+                badge: 'bg-amber-100 text-amber-800',
+                ctrlBtn: 'bg-amber-100 hover:bg-amber-200 text-amber-800',
+                earOuter: 'bg-amber-300 border-amber-400 rounded-full',
+                earInner: 'bg-amber-100',
+                clockBody: 'bg-amber-50/40 border-amber-300 shadow-[0_12px_28px_rgba(251,191,36,0.28)]',
+                innerRing: 'border-amber-200',
+                digitalPanel: 'bg-amber-50 border-amber-100',
+                digitalTime: 'text-amber-800',
+                digitalSub: 'text-amber-600',
+                hint: 'text-amber-500',
+                footer: 'text-amber-500/90',
+                svg: {
+                    hour: '#d97706',
+                    minute: '#f59e0b',
+                    second: '#ef4444',
+                    center: '#d97706',
+                    markerDot: '#fde68a',
+                    markerNum: '#b45309',
+                    cheek: '#fca5a5',
+                    faceStroke: '#573b26'
+                },
+                heartIcons: ['🍯', '💛', '✨', '🌼']
+            },
+            mint: {
+                bodyBg: 'bg-emerald-50 text-emerald-900',
+                card: 'bg-white/90 border-emerald-200',
+                badge: 'bg-emerald-100 text-emerald-800',
+                ctrlBtn: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800',
+                earOuter: 'bg-emerald-300 border-emerald-400 rounded-t-full scale-y-125 -translate-y-2',
+                earInner: 'bg-emerald-100',
+                clockBody: 'bg-white border-emerald-300 shadow-[0_12px_28px_rgba(52,211,153,0.28)]',
+                innerRing: 'border-emerald-200',
+                digitalPanel: 'bg-emerald-50 border-emerald-100',
+                digitalTime: 'text-emerald-700',
+                digitalSub: 'text-emerald-600',
+                hint: 'text-emerald-500',
+                footer: 'text-emerald-500/90',
+                svg: {
+                    hour: '#10b981',
+                    minute: '#34d399',
+                    second: '#f43f5e',
+                    center: '#10b981',
+                    markerDot: '#a7f3d0',
+                    markerNum: '#059669',
+                    cheek: '#fda4af',
+                    faceStroke: '#284b3e'
+                },
+                heartIcons: ['🍀', '💚', '✨', '🥕']
+            },
+            night: {
+                bodyBg: 'bg-slate-900 text-indigo-100',
+                card: 'bg-slate-800/90 border-indigo-400/40',
+                badge: 'bg-indigo-900/80 text-indigo-200',
+                ctrlBtn: 'bg-indigo-900/80 hover:bg-indigo-800 text-indigo-200',
+                earOuter: 'bg-indigo-500 border-indigo-300 rounded-t-full',
+                earInner: 'bg-indigo-200',
+                clockBody: 'bg-slate-900 border-indigo-400 shadow-[0_12px_32px_rgba(129,140,248,0.35)]',
+                innerRing: 'border-indigo-500/40',
+                digitalPanel: 'bg-slate-900/70 border-indigo-500/30',
+                digitalTime: 'text-indigo-200',
+                digitalSub: 'text-indigo-300',
+                hint: 'text-indigo-300',
+                footer: 'text-indigo-300/80',
+                svg: {
+                    hour: '#a5b4fc',
+                    minute: '#c4b5fd',
+                    second: '#fde047',
+                    center: '#818cf8',
+                    markerDot: '#4338ca',
+                    markerNum: '#e0e7ff',
+                    cheek: '#f472b6',
+                    faceStroke: '#e0e7ff'
+                },
+                heartIcons: ['🌙', '⭐', '💜', '✨']
+            }
+        };
+
+        // 星期對照表
+        const WEEKDAYS_ZH = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+        // ==========================================
+        // 2. DOM 元素參照
+        // ==========================================
+        const elements = {
+            body: document.getElementById('page-body'),
+            card: document.getElementById('main-card'),
+            greetingBadge: document.getElementById('greeting-badge'),
+            greetingIcon: document.getElementById('greeting-icon'),
+            greetingText: document.getElementById('greeting-text'),
+            soundToggle: document.getElementById('sound-toggle'),
+            soundIcon: document.getElementById('sound-icon'),
+            formatToggle: document.getElementById('format-toggle'),
+            earLeft: document.getElementById('ear-left'),
+            earRight: document.getElementById('ear-right'),
+            earLeftInner: document.getElementById('ear-left-inner'),
+            earRightInner: document.getElementById('ear-right-inner'),
+            clockBody: document.getElementById('clock-body'),
+            clockInnerRing: document.getElementById('clock-inner-ring'),
+            markersGroup: document.getElementById('clock-markers'),
+            hourHand: document.getElementById('hour-hand'),
+            minuteHand: document.getElementById('minute-hand'),
+            secondHand: document.getElementById('second-hand'),
+            centerOuter: document.getElementById('clock-center-outer'),
+            cheekLeft: document.getElementById('cheek-left'),
+            cheekRight: document.getElementById('cheek-right'),
+            eyesNormal: document.getElementById('eyes-normal'),
+            eyesHappy: document.getElementById('eyes-happy'),
+            cuteMouth: document.getElementById('cute-mouth'),
+            petArea: document.getElementById('clock-pet-area'),
+            petHint: document.getElementById('pet-hint'),
+            heartsContainer: document.getElementById('hearts-container'),
+            digitalPanel: document.getElementById('digital-panel'),
+            digitalTime: document.getElementById('digital-time'),
+            digitalAmpm: document.getElementById('digital-ampm'),
+            digitalDate: document.getElementById('digital-date'),
+            themeLabel: document.getElementById('theme-label'),
+            footer: document.getElementById('page-footer'),
+            themeBtns: document.querySelectorAll('.theme-btn')
+        };
+
+        // ==========================================
+        // 3. Web Audio 輕柔音效工具 (無需外部音檔)
+        // ==========================================
+        function initAudioContext() {
+            try {
+                if (!audioCtx) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContextClass) {
+                        audioCtx = new AudioContextClass();
+                    }
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch (err) {
+                console.warn('音訊初始化失敗:', err);
+            }
+        }
+
+        // 輕柔滴答聲
+        function playSoftTick() {
+            if (!isSoundEnabled || !audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(680, now);
+                osc.frequency.exponentialRampToValueAtTime(320, now + 0.035);
+
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.045);
+            } catch (err) {
+                // 忽略瀏覽器音訊播放限制錯誤
+            }
+        }
+
+        // 被摸摸時的可愛叮咚音效
+        function playHappyChime() {
+            initAudioContext();
+            if (!audioCtx) return;
+            try {
+                const now = audioCtx.currentTime;
+                const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 和弦琶音
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+
+                    gain.gain.setValueAtTime(0.001, now + idx * 0.06);
+                    gain.gain.linearRampToValueAtTime(0.07, now + idx * 0.06 + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.06);
+                    osc.stop(now + idx * 0.06 + 0.28);
+                });
+            } catch (err) {
+                console.warn('無法播放互動音效:', err);
+            }
+        }
+
+        // ==========================================
+        // 4. 繪製指針時鐘刻度與數字
+        // ==========================================
+        function buildClockMarkers(themeSvg) {
+            const svgNS = 'http://www.w3.org/2000/svg';
+            elements.markersGroup.innerHTML = '';
+
+            for (let i = 1; i <= 12; i++) {
+                const angleRad = ((i * 30) - 90) * (Math.PI / 180);
+                const radius = 92;
+                const x = 120 + radius * Math.cos(angleRad);
+                const y = 120 + radius * Math.sin(angleRad);
+
+                // 3, 6, 9, 12 顯示圓潤可愛數字，其餘顯示柔和圓點
+                if (i % 3 === 0) {
+                    const text = document.createElementNS(svgNS, 'text');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y + 6);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('fill', themeSvg.markerNum);
+                    text.setAttribute('font-size', '18');
+                    text.setAttribute('font-weight', '800');
+                    text.textContent = i.toString();
+                    elements.markersGroup.appendChild(text);
+                } else {
+                    const dot = document.createElementNS(svgNS, 'circle');
+                    dot.setAttribute('cx', x);
+                    dot.setAttribute('cy', y);
+                    dot.setAttribute('r', '4');
+                    dot.setAttribute('fill', themeSvg.markerDot);
+                    elements.markersGroup.appendChild(dot);
+                }
+            }
+        }
+
+        // ==========================================
+        // 5. 套用主題樣式
+        // ==========================================
+        function applyTheme(themeKey) {
+            const theme = THEMES[themeKey] || THEMES.strawberry;
+            currentThemeKey = themeKey;
+
+            // 更新頁面背景與卡片配色
+            elements.body.className = `font-cute min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-700 overflow-x-hidden select-none relative ${theme.bodyBg}`;
+            elements.card.className = `relative z-10 w-full max-w-md backdrop-blur-md rounded-[2.5rem] shadow-2xl border-4 p-6 sm:p-8 flex flex-col items-center transition-all duration-500 ${theme.card}`;
+            elements.greetingBadge.className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full font-bold text-sm sm:text-base shadow-sm transition-colors duration-500 ${theme.badge}`;
+
+            elements.soundToggle.className = `p-2.5 rounded-full transition-all active:scale-90 shadow-sm ${theme.ctrlBtn}`;
+            elements.formatToggle.className = `px-3 py-2 rounded-full font-extrabold text-xs sm:text-sm transition-all active:scale-90 shadow-sm ${theme.ctrlBtn}`;
+
+            // 更新耳朵造型與顏色
+            elements.earLeft.className = `w-14 h-14 sm:w-16 sm:h-16 border-4 -rotate-12 flex items-center justify-center shadow-inner transition-all duration-500 rounded-bl-3xl ${theme.earOuter}`;
+            elements.earRight.className = `w-14 h-14 sm:w-16 sm:h-16 border-4 rotate-12 flex items-center justify-center shadow-inner transition-all duration-500 rounded-br-3xl ${theme.earOuter}`;
+            elements.earLeftInner.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-t-full rounded-bl-xl transition-colors duration-500 ${theme.earInner}`;
+            elements.earRightInner.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-t-full rounded-br-xl transition-colors duration-500 ${theme.earInner}`;
+
+            // 更新錶殼與數位面板
+            elements.clockBody.className = `relative w-64 h-64 sm:w-72 sm:h-72 rounded-full border-[10px] flex items-center justify-center transition-all duration-500 ${theme.clockBody}`;
+            elements.clockInnerRing.className = `absolute inset-2 rounded-full border-2 border-dashed pointer-events-none transition-colors duration-500 ${theme.innerRing}`;
+            elements.digitalPanel.className = `w-full rounded-3xl border-2 p-4 sm:p-5 text-center shadow-inner transition-colors duration-500 ${theme.digitalPanel}`;
+            elements.digitalTime.className = `text-4xl sm:text-5xl font-black tracking-wider transition-colors duration-500 ${theme.digitalTime}`;
+            elements.digitalAmpm.className = `text-sm sm:text-base font-extrabold transition-colors duration-500 ${theme.digitalSub} ${is24Hour ? 'hidden' : 'inline-block'}`;
+            elements.digitalDate.className = `mt-1.5 text-sm sm:text-base font-bold opacity-90 transition-colors duration-500 ${theme.digitalSub}`;
+
+            elements.petHint.className = `mt-2 inline-block text-xs font-bold opacity-85 group-hover:opacity-100 transition-opacity ${theme.hint}`;
+            elements.themeLabel.className = `text-center text-xs font-bold mb-3 tracking-wide ${theme.hint}`;
+            elements.footer.className = `relative z-10 mt-5 text-xs sm:text-sm font-bold transition-colors duration-500 ${theme.footer}`;
+
+            // 更新 SVG 指針與表情顏色
+            elements.hourHand.querySelector('line').setAttribute('stroke', theme.svg.hour);
+            elements.minuteHand.querySelector('line').setAttribute('stroke', theme.svg.minute);
+            elements.secondHand.querySelector('line').setAttribute('stroke', theme.svg.second);
+            elements.secondHand.querySelector('circle').setAttribute('fill', theme.svg.second);
+            elements.centerOuter.setAttribute('fill', theme.svg.center);
+            elements.cheekLeft.setAttribute('fill', theme.svg.cheek);
+            elements.cheekRight.setAttribute('fill', theme.svg.cheek);
+            elements.cuteMouth.setAttribute('stroke', theme.svg.faceStroke);
+
+            // 更新眼睛顏色
+            elements.eyesNormal.querySelectorAll('circle').forEach((c, idx) => {
+                if (idx % 2 === 0) c.setAttribute('fill', theme.svg.faceStroke);
+            });
+            elements.eyesHappy.querySelectorAll('path').forEach(p => {
+                p.setAttribute('stroke', theme.svg.faceStroke);
+            });
+
+            // 重新繪製刻度
+            buildClockMarkers(theme.svg);
+
+            // 更新主題按鈕選取外框
+            elements.themeBtns.forEach(btn => {
+                const isSelected = btn.dataset.theme === themeKey;
+                btn.classList.toggle('border-pink-400', isSelected && themeKey === 'strawberry');
+                btn.classList.toggle('border-amber-400', isSelected && themeKey === 'honey');
+                btn.classList.toggle('border-emerald-400', isSelected && themeKey === 'mint');
+                btn.classList.toggle('border-indigo-300', isSelected && themeKey === 'night');
+                btn.classList.toggle('border-transparent', !isSelected);
+                btn.classList.toggle('ring-2', isSelected);
+                btn.classList.toggle('ring-offset-2', isSelected);
+                btn.classList.toggle('ring-pink-300', isSelected && themeKey === 'strawberry');
+                btn.classList.toggle('ring-amber-300', isSelected && themeKey === 'honey');
+                btn.classList.toggle('ring-emerald-300', isSelected && themeKey === 'mint');
+                btn.classList.toggle('ring-indigo-400', isSelected && themeKey === 'night');
+            });
+        }
+
+        // ==========================================
+        // 6. 即時更新時鐘與問候語
+        // ==========================================
+        function updateGreeting(hour) {
+            let icon = '☀️';
+            let text = '早安呀！';
+
+            if (hour >= 5 && hour < 11) {
+                icon = '🌅';
+                text = '早安，元氣滿滿！';
+            } else if (hour >= 11 && hour < 14) {
+                icon = '🍱';
+                text = '午安，記得吃飯喔！';
+            } else if (hour >= 14 && hour < 18) {
+                icon = '🍰';
+                text = '下午茶時間到～';
+            } else if (hour >= 18 && hour < 22) {
+                icon = '🌆';
+                text = '晚安，辛苦一天囉！';
+            } else {
+                icon = '🌙';
+                text = '夜深了，早點休息喔';
+            }
+
+            elements.greetingIcon.textContent = icon;
+            elements.greetingText.textContent = text;
+        }
+
+        function updateClock() {
+            try {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+                const ms = now.getMilliseconds();
+
+                // 計算滑順指針角度
+                const secondDeg = (seconds + ms / 1000) * 6;
+                const minuteDeg = (minutes + seconds / 60) * 6;
+                const hourDeg = ((hours % 12) + minutes / 60) * 30;
+
+                elements.secondHand.setAttribute('transform', `rotate(${secondDeg} 120 120)`);
+                elements.minuteHand.setAttribute('transform', `rotate(${minuteDeg} 120 120)`);
+                elements.hourHand.setAttribute('transform', `rotate(${hourDeg} 120 120)`);
+
+                // 每秒更新一次數位文字、問候語與滴答聲
+                if (seconds !== lastSecond) {
+                    lastSecond = seconds;
+                    playSoftTick();
+
+                    let displayHour = hours;
+                    let ampm = '';
+
+                    if (!is24Hour) {
+                        ampm = hours >= 12 ? 'PM' : 'AM';
+                        displayHour = hours % 12 || 12;
+                        elements.digitalAmpm.textContent = ampm;
+                        elements.digitalAmpm.classList.remove('hidden');
+                    } else {
+                        elements.digitalAmpm.classList.add('hidden');
+                    }
+
+                    const pad = n => String(n).padStart(2, '0');
+                    elements.digitalTime.textContent = `${pad(displayHour)}:${pad(minutes)}:${pad(seconds)}`;
+
+                    const year = now.getFullYear();
+                    const month = now.getMonth() + 1;
+                    const date = now.getDate();
+                    const weekday = WEEKDAYS_ZH[now.getDay()];
+                    elements.digitalDate.textContent = `${year}年 ${month}月 ${date}日 ${weekday}`;
+
+                    updateGreeting(hours);
+                }
+            } catch (err) {
+                console.error('更新時鐘時發生錯誤:', err);
+            }
+
+            requestAnimationFrame(updateClock);
+        }
+
+        // ==========================================
+        // 7. 摸摸時鐘互動效果
+        // ==========================================
+        function triggerPetReaction() {
+            playHappyChime();
+
+            // 切換成開心彎彎眼
+            elements.eyesNormal.classList.add('hidden');
+            elements.eyesHappy.classList.remove('hidden');
+
+            // 產生飄浮小愛心/貼圖
+            const icons = THEMES[currentThemeKey].heartIcons;
+            for (let i = 0; i < 4; i++) {
+                const heart = document.createElement('span');
+                heart.textContent = icons[Math.floor(Math.random() * icons.length)];
+                const offsetX = (Math.random() - 0.5) * 140;
+                const offsetY = (Math.random() - 0.5) * 60;
+                heart.className = 'absolute text-2xl sm:text-3xl animate-float-up pointer-events-none';
+                heart.style.left = `calc(50% + ${offsetX}px)`;
+                heart.style.top = `calc(40% + ${offsetY}px)`;
+                elements.heartsContainer.appendChild(heart);
+
+                setTimeout(() => {
+                    heart.remove();
+                }, 1000);
+            }
+
+            // 恢復正常眨眼
+            clearTimeout(happyTimeout);
+            happyTimeout = setTimeout(() => {
+                elements.eyesHappy.classList.add('hidden');
+                elements.eyesNormal.classList.remove('hidden');
+            }, 1400);
+        }
+
+        // ==========================================
+        // 8. 事件監聽與初始化
+        // ==========================================
+        elements.petArea.addEventListener('click', triggerPetReaction);
+
+        elements.formatToggle.addEventListener('click', () => {
+            is24Hour = !is24Hour;
+            elements.formatToggle.textContent = is24Hour ? '24H' : '12H';
+            lastSecond = -1; // 強制立即刷新顯示
+        });
+
+        elements.soundToggle.addEventListener('click', () => {
+            initAudioContext();
+            isSoundEnabled = !isSoundEnabled;
+            elements.soundIcon.textContent = isSoundEnabled ? '🔊' : '🔇';
+            if (isSoundEnabled) {
+                playSoftTick();
+            }
+        });
+
+        elements.themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyTheme(btn.dataset.theme);
+            });
+        });
+
+        // 啟動預設主題與時鐘動畫迴圈
+        window.addEventListener('DOMContentLoaded', () => {
+            applyTheme('strawberry');
+            requestAnimationFrame(updateClock);
+        });
+    </script>
+</body>
+</html>
